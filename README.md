@@ -32,3 +32,9 @@ Notas
 - Este demo NO calcula posiciones astronómicas reales; usa un campo estelar estético con parallax por orientación.
 - En iOS 13+ es obligatorio el gesto de usuario para `DeviceOrientationEvent.requestPermission()`.
 
+
+Animales (constelaciones animadas)
+- Nuevo toggle en la barra inferior: "Animales".
+- Dibuja Colibrí, Zorro y Delfín con líneas brillantes y nodos estelares.
+- La figura se traza de forma progresiva (animación de escritura) y flota levemente con parallax.
+- Edita o añade figuras en `createAnimalShapes()` dentro de `app.js`.
