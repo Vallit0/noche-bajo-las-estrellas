@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <defs>
+    <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f2a900"/>
+      <stop offset="1" stop-color="#eab308"/>
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="transparent"/>
+  <!-- Half sun + triangle, inspirado en la imagen adjunta -->
+  <path d="M200 60a140 140 0 0 1 140 140H60A140 140 0 0 1 200 60z" fill="url(#g)"/>
+  <path d="M120 300L200 160l80 140z" fill="#f7e3a6"/>
+</svg>
+

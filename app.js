@@ -8,6 +8,9 @@ const toggleAnimals = document.getElementById('toggleAnimals');
 const promptEl = document.getElementById('prompt');
 const promptBtn = document.getElementById('promptBtn');
 const promptMsg = document.getElementById('promptMsg');
+const intro = document.getElementById('intro');
+const needle = document.getElementById('needle');
+const headingEl = document.getElementById('heading');
 
 // Resize canvas to full screen
 function fit() {
@@ -70,6 +73,9 @@ function handleOrientation(ev){
     pitch = (ev.beta || 0) * Math.PI/180;
     roll = (ev.gamma || 0) * Math.PI/180;
     haveGyro = true;
+    const deg = Math.round(ev.alpha || 0);
+    if (needle) needle.style.transform = `translate(-50%,-90%) rotate(${deg}deg)`;
+    if (headingEl) headingEl.textContent = `${deg}°`;
   }
 }
 
@@ -187,7 +193,9 @@ function draw(){
   // Aurora backdrop
   renderAurora(ctx, W, H, now, panX, panY);
 
-  // Draw stars
+  // Draw stars (ligeramente rotado por brújula para dar dirección)
+  const rot = haveGyro ? Math.sin(yaw)*0.02 : 0;
+  if (rot){ ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(rot); ctx.translate(-W/2,-H/2); }
   for (const s of STARS){
     const x = (s.x + panX * (0.2 + s.layer*0.2)) * W;
     const y = (s.y + panY * (0.2 + s.layer*0.2)) * H;
@@ -198,6 +206,7 @@ function draw(){
     ctx.arc(x, y, r, 0, Math.PI*2);
     ctx.fill();
   }
+  if (rot){ ctx.restore(); }
 
   // Draw ONE constellation at a time (ciclo)
   if (toggleLines.checked){
@@ -244,8 +253,9 @@ function draw(){
     renderAnimals(ctx, W, H, panX, panY, now, [currentAnimal]);
   }
 
-  // Shooting stars and particle overlays
+  // Shooting stars, comets and particle overlays
   updateMeteors(ctx, W, H, now, panX, panY);
+  updateComets(ctx, W, H, now);
   updateParticles(ctx, W, H, now);
 
   requestAnimationFrame(draw);
@@ -263,6 +273,9 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
 
 // Helpful tips in console
 console.log('%cTip','background:#f2a900;color:#1a0b00;padding:2px 6px;border-radius:6px','Para iOS, toca "Activar brújula" para habilitar orientación.');
+
+// Intro fade out
+window.addEventListener('load', ()=>{ setTimeout(()=>{ if (intro) intro.classList.add('fade'); }, 1200); });
 
 // ---- Animal constellation helpers ----
 function createAnimalShapes(){
@@ -333,57 +346,32 @@ function createAnimalShapes(){
     nodes: [[0.50,0.50],[0.42,0.38],[0.58,0.38],[0.34,0.63],[0.66,0.63]]
   };
 
-  // Owl (Buho) – head and body outline with ears
-  const owl = {
-    name: 'Buho',
+  // Elephant (Elefante)
+  const elephant = {
+    name: 'Elefante',
     strokes: [
-      // head + ears
-      [[0.42,0.40],[0.46,0.34],[0.50,0.32],[0.54,0.34],[0.58,0.40]],
-      // body sides
-      [[0.42,0.40],[0.40,0.55],[0.44,0.70]],
-      [[0.58,0.40],[0.60,0.55],[0.56,0.70]],
-      // bottom arc
-      [[0.44,0.70],[0.50,0.74],[0.56,0.70]],
+      [[0.25,0.60],[0.40,0.55],[0.55,0.55],[0.64,0.60]],
+      [[0.48,0.54],[0.46,0.50],[0.44,0.52],[0.46,0.58],[0.48,0.54]],
+      [[0.64,0.60],[0.70,0.62],[0.72,0.66],[0.68,0.70]],
+      [[0.36,0.60],[0.36,0.68]],
+      [[0.54,0.60],[0.54,0.70]],
     ],
-    nodes: [[0.46,0.34],[0.54,0.34],[0.50,0.74]]
+    nodes: [[0.46,0.50],[0.36,0.68],[0.54,0.70]]
   };
 
-  // Turtle (Tortuga) – shell ellipse and limbs
-  const turtle = {
-    name: 'Tortuga',
+  // Lion (Leon)
+  const lion = {
+    name: 'Leon',
     strokes: [
-      // shell
-      [[0.40,0.55],[0.45,0.48],[0.55,0.48],[0.60,0.55],[0.55,0.62],[0.45,0.62],[0.40,0.55]],
-      // head
-      [[0.62,0.55],[0.68,0.54]],
-      // tail
-      [[0.38,0.55],[0.34,0.56]],
-      // legs
-      [[0.45,0.48],[0.43,0.44]],
-      [[0.55,0.48],[0.57,0.44]],
-      [[0.45,0.62],[0.43,0.66]],
-      [[0.55,0.62],[0.57,0.66]],
+      [[0.45,0.52],[0.46,0.46],[0.50,0.44],[0.54,0.46],[0.56,0.52],[0.54,0.58],[0.50,0.60],[0.46,0.58],[0.45,0.52]],
+      [[0.50,0.52],[0.54,0.54]],
+      [[0.56,0.56],[0.62,0.58],[0.68,0.60],[0.72,0.64]],
+      [[0.72,0.64],[0.76,0.64],[0.78,0.60]],
     ],
-    nodes: [[0.50,0.48],[0.50,0.62],[0.62,0.55],[0.38,0.55]]
+    nodes: [[0.50,0.44],[0.56,0.56],[0.72,0.64]]
   };
 
-  // Cat (Gato) – ears and curved back with tail
-  const cat = {
-    name: 'Gato',
-    strokes: [
-      // head with ears
-      [[0.44,0.52],[0.46,0.46],[0.50,0.44],[0.54,0.46],[0.56,0.52]],
-      // back arch
-      [[0.56,0.52],[0.62,0.56],[0.66,0.62],[0.64,0.68]],
-      // chest to paws
-      [[0.44,0.52],[0.42,0.60],[0.44,0.66]],
-      // tail
-      [[0.64,0.68],[0.68,0.64],[0.70,0.60],[0.68,0.56]],
-    ],
-    nodes: [[0.46,0.46],[0.54,0.46],[0.66,0.62]]
-  };
-
-  return [hummingbird, fox, dolphin, butterfly, owl, turtle, cat];
+  return [hummingbird, butterfly, elephant, lion];
 }
 
 function buildAnimalInstance(shape){
@@ -609,5 +597,38 @@ function renderAurora(ctx, W, H, now, panX, panY){
     ctx.lineTo(W,0); ctx.lineTo(0,0); ctx.closePath();
     ctx.fillStyle = `hsla(${hue}, 70%, 60%, ${alpha})`;
     ctx.fill();
+  }
+}
+
+// ---- Comets (slow, long tails) ----
+const COMETS = [];
+let lastComet = 0;
+function spawnComet(W,H){
+  const fromLeft = Math.random() < 0.5;
+  const x = fromLeft ? -80 : W+80;
+  const y = H*(0.25 + Math.random()*0.3);
+  const speed = 60 + Math.random()*50;
+  const dir = fromLeft ? 0 : Math.PI;
+  COMETS.push({ x, y, vx: Math.cos(dir)*speed, vy: (Math.random()*20-10), age:0, life:20, trail:[] });
+}
+function updateComets(ctx, W, H, now){
+  const t = now/1000;
+  if (t - lastComet > 10 && COMETS.length < 2){ lastComet = t; spawnComet(W,H); }
+  for (let i=COMETS.length-1;i>=0;i--){
+    const c = COMETS[i];
+    const dt = 1/60;
+    c.age += dt; c.x += c.vx*dt; c.y += c.vy*dt;
+    c.trail.unshift({x:c.x,y:c.y});
+    if (c.trail.length>180) c.trail.pop();
+    // tail
+    ctx.lineWidth = 2.2; ctx.shadowBlur = 18; ctx.shadowColor = '#cbe7ff';
+    for (let j=0;j<c.trail.length-1;j++){
+      const a = (1 - j/c.trail.length)*0.55;
+      ctx.strokeStyle = `rgba(200,230,255,${a})`;
+      ctx.beginPath(); ctx.moveTo(c.trail[j].x, c.trail[j].y); ctx.lineTo(c.trail[j+1].x, c.trail[j+1].y); ctx.stroke();
+    }
+    // head
+    ctx.beginPath(); ctx.fillStyle='rgba(230,245,255,0.95)'; ctx.arc(c.x, c.y, 3.2, 0, Math.PI*2); ctx.fill();
+    if (c.x < -120 || c.x > W+120 || c.age > c.life) COMETS.splice(i,1);
   }
 }
