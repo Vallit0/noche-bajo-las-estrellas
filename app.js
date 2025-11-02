@@ -19,7 +19,7 @@ function fit() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 window.addEventListener('resize', fit);
-fit();
+window.addEventListener('load', fit);
 
 // Start camera
 let cameraReady = false;
