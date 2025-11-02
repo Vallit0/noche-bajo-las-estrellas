@@ -66,12 +66,16 @@ btnGyro.addEventListener('click', enableGyro);
 
 // Star field generation (aesthetic, not astronomical precision)
 const rng = mulberry32(Date.now() >>> 0);
-const STARS = createStars(320);
+const STARS = createStars(600);
 const CONSTELLATIONS = buildConstellations(STARS);
 
 // Animal constellations (vector line art normalized to 0..1)
 const ANIMAL_SHAPES = createAnimalShapes();
 const ANIMALS = placeAnimals(ANIMAL_SHAPES);
+
+// Extra animations: shooting stars, particles and aurora
+const METEORS = [];
+const PARTICLES = [];
 
 function mulberry32(a){
   return function(){
@@ -149,6 +153,9 @@ function draw(){
   const panX = Math.sin(yaw) * 0.2;
   const panY = Math.sin(pitch) * 0.2;
 
+  // Aurora backdrop
+  renderAurora(ctx, W, H, now, panX, panY);
+
   // Draw stars
   for (const s of STARS){
     const x = (s.x + panX * (0.2 + s.layer*0.2)) * W;
@@ -194,6 +201,10 @@ function draw(){
   if (toggleAnimals && toggleAnimals.checked){
     renderAnimals(ctx, W, H, panX, panY, now);
   }
+
+  // Shooting stars and particle overlays
+  updateMeteors(ctx, W, H, now, panX, panY);
+  updateParticles(ctx, W, H, now);
 
   requestAnimationFrame(draw);
 }
@@ -315,6 +326,13 @@ function renderAnimals(ctx, W, H, panX, panY, now){
       const r = 0.012 + tw*0.010;
       ctx.arc(n[0]-0.5, n[1]-0.5, r, 0, Math.PI*2);
       ctx.fill();
+
+      // Emit sparkle particles
+      if (Math.random() < 0.12){
+        const px = (a.x + panX*0.25 + (n[0]-0.5)*sc/W*2) * W; // approx
+        const py = (a.y + panY*0.25 + (n[1]-0.5)*sc/H*2) * H;
+        spawnParticle(px, py);
+      }
     }
 
     ctx.restore();
@@ -372,5 +390,81 @@ function traceStrokes(ctx, strokes, drawLen){
       }
     }
     ctx.stroke();
+  }
+}
+
+// ---- Shooting stars ----
+function spawnMeteor(W, H, panX, panY){
+  const fromTop = Math.random() < 0.6;
+  const x = fromTop ? Math.random()*W : -50;
+  const y = fromTop ? -20 : Math.random()*H*0.4;
+  const speed = 400 + Math.random()*500;
+  const angle = (-35 + Math.random()*20) * Math.PI/180;
+  METEORS.push({ x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, life: 0.9+Math.random()*0.8, age:0, len: 120+Math.random()*120 });
+}
+
+let lastMeteor = 0;
+function updateMeteors(ctx, W, H, now, panX, panY){
+  const t = now/1000;
+  if (t - lastMeteor > 1.5 + Math.random()*1.0 && METEORS.length < 5){
+    lastMeteor = t;
+    spawnMeteor(W,H,panX,panY);
+  }
+  for (let i=METEORS.length-1;i>=0;i--){
+    const m = METEORS[i];
+    const dt = 1/60;
+    m.age += dt;
+    m.x += m.vx*dt; m.y += m.vy*dt;
+    // draw streak
+    const alpha = Math.max(0, 1 - m.age/m.life);
+    const tailX = m.x - m.vx*dt* m.len/60;
+    const tailY = m.y - m.vy*dt* m.len/60;
+    const grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
+    grad.addColorStop(0, `rgba(255,255,255,${alpha})`);
+    grad.addColorStop(1, `rgba(255,220,120,0)`);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(tailX, tailY); ctx.stroke();
+    // glow
+    ctx.beginPath(); ctx.fillStyle = `rgba(255,240,200,${alpha*0.8})`; ctx.arc(m.x, m.y, 2.5, 0, Math.PI*2); ctx.fill();
+    if (m.age > m.life || m.x>W+50 || m.y>H+50) METEORS.splice(i,1);
+  }
+}
+
+// ---- Sparkle particles ----
+function spawnParticle(x,y){
+  PARTICLES.push({x,y, vx:(Math.random()-0.5)*20, vy:(Math.random()-0.8)*30, life:0.8, age:0, size:1+Math.random()*1.5});
+}
+function updateParticles(ctx, W, H, now){
+  const dt = 1/60;
+  for (let i=PARTICLES.length-1;i>=0;i--){
+    const p = PARTICLES[i];
+    p.age += dt; p.x += p.vx*dt; p.y += p.vy*dt; p.vy += 10*dt; // slight gravity
+    const a = Math.max(0, 1 - p.age/p.life);
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(255,230,170,${a})`;
+    ctx.shadowColor = 'rgba(255,210,120,0.8)'; ctx.shadowBlur = 8;
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+    if (p.age>p.life) PARTICLES.splice(i,1);
+  }
+  ctx.shadowBlur = 0;
+}
+
+// ---- Aurora ----
+function renderAurora(ctx, W, H, now, panX, panY){
+  const yBase = H*0.18 + Math.sin(now*0.0003)*10 + panY*20;
+  const bands = 3;
+  for (let b=0;b<bands;b++){
+    const alpha = 0.08 + b*0.05;
+    const hue = 260 + b*20; // purple/blue-ish
+    ctx.beginPath();
+    for (let x=0;x<=W;x+=16){
+      const t = (x/W)*Math.PI*2;
+      const y = yBase + Math.sin(t*1.6 + b + now*0.0004)*18 + Math.sin(t*3.3 + b*2 + now*0.0006)*6;
+      if (x===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W,0); ctx.lineTo(0,0); ctx.closePath();
+    ctx.fillStyle = `hsla(${hue}, 70%, 60%, ${alpha})`;
+    ctx.fill();
   }
 }
