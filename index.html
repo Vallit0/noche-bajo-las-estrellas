@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Una Noche Bajo las Estrellas</title>
+    <meta name="theme-color" content="#3b1448" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Cámara -->
+    <video id="camera" autoplay playsinline muted></video>
+
+    <!-- Capa de estrellas y constelaciones -->
+    <canvas id="stars"></canvas>
+
+    <!-- Gradientes y decoración estilo flyer -->
+    <div class="vignette"></div>
+
+    <!-- Encabezado estilo afiche -->
+    <header class="hero">
+      <div class="branding">
+        <img class="logo" src="assets/logo.svg" alt="Logo" />
+        <div class="brand-text">
+          <div class="brand-name">Tu Marca</div>
+          <div class="brand-sub">Corporación de Servicio</div>
+        </div>
+      </div>
+      <h1>Una Noche Bajo las Estrellas</h1>
+      <p class="subtitle">
+        Acompáñanos a vivir una experiencia especial para observar el cielo,
+        conectar con la naturaleza y recordar con gratitud a quienes siguen
+        iluminando nuestras vidas.
+      </p>
+      <div class="event-row">
+        <div class="event-date">
+          <span class="big">1</span>
+          <div>
+            <div class="mon">de Nov</div>
+          </div>
+        </div>
+        <div class="event-time">
+          <div>7:00 PM a</div>
+          <div>9:00 PM</div>
+        </div>
+      </div>
+      <div class="event-location">Fuente de los Recuerdos, Cementerio Los Parques</div>
+    </header>
+
+    <!-- Controles -->
+    <div class="controls">
+      <button id="btnCamera">Permitir cámara</button>
+      <button id="btnGyro">Activar brújula</button>
+      <label class="toggle">
+        <input id="toggleLines" type="checkbox" checked />
+        <span>Mostrar constelaciones</span>
+      </label>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+  </html>
+

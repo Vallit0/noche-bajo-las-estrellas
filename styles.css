@@ -1,0 +1,77 @@
+:root{
+  --purple:#3b1448;
+  --purple-dark:#270b30;
+  --gold:#f2a900;
+  --soft:#ffffffdd;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  overflow:hidden;
+}
+
+#camera{
+  position:fixed; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(1.1) brightness(0.9);
+}
+
+#stars{
+  position:fixed; inset:0; width:100%; height:100%; pointer-events:none;
+}
+
+.vignette{
+  position:fixed; inset:0; pointer-events:none;
+  background: radial-gradient(ellipse at center, #0000 50%, #0007 100%),
+              linear-gradient(180deg, #0000 0%, #0006 75%, #000a 100%);
+}
+
+.hero{
+  position:fixed; left:0; right:0; top:0; padding:16px 20px 8px;
+  display:flex; flex-direction:column; align-items:flex-start; gap:8px;
+  background:linear-gradient(180deg, color-mix(in oklab, var(--purple) 70%, transparent) 0%, transparent 90%);
+}
+
+.branding{display:flex; align-items:center; gap:10px; color:#fff}
+.logo{width:44px; height:44px; border-radius:50%; background:#fff1; padding:4px}
+.brand-text{line-height:1}
+.brand-name{font-weight:700; letter-spacing:.3px}
+.brand-sub{font-size:.8rem; opacity:.8}
+
+.hero h1{
+  margin:2px 0 0; padding:0; font-family:"Playfair Display", serif; font-weight:800; font-size: clamp(22px, 5vw, 40px);
+  color:var(--gold); text-shadow:0 2px 14px #0008;
+}
+
+.subtitle{max-width:900px; color:var(--soft); text-shadow:0 1px 8px #000c; margin:4px 0 0}
+
+.event-row{display:flex; align-items:center; gap:16px; margin-top:6px}
+.event-date{display:flex; align-items:baseline; gap:8px; color:var(--gold)}
+.event-date .big{font-family:"Playfair Display", serif; font-size:34px; font-weight:800}
+.event-date .mon{font-weight:700}
+.event-time{font-weight:600; background: #0006; padding:6px 10px; border:1px solid #ffffff1a; border-radius:8px}
+.event-location{margin-top:6px; opacity:.95}
+
+.controls{
+  position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
+  display:flex; gap:10px; align-items:center; background:#1a0722bf; backdrop-filter: blur(6px);
+  border:1px solid #ffffff20; border-radius:12px; padding:8px 10px; box-shadow: 0 6px 30px #0009;
+}
+
+button{
+  appearance:none; border:0; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer;
+  color:#1b0b00; background:var(--gold); box-shadow:0 2px 0 #0004; transition:.2s transform ease;
+}
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(0)}
+
+.toggle{display:flex; align-items:center; gap:6px; user-select:none}
+.toggle input{accent-color:var(--gold)}
+
+@media (min-width: 900px){
+  .hero{padding:18px 36px 12px}
+}
+
