@@ -17,8 +17,6 @@ function fit() {
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  // Recentra el animal actual
-  currentAnimal = buildAnimalInstance(ANIMAL_SHAPES[currentAnimalIndex]);
 }
 window.addEventListener('resize', fit);
 fit();
