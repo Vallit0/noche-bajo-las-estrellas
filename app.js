@@ -14,8 +14,8 @@ function fit() {
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  // Reposicionar animales según tamaño para evitar traslapes
-  ANIMALS = placeAnimals(ANIMAL_SHAPES);
+  // Recentra el animal actual
+  currentAnimal = buildAnimalInstance(ANIMAL_SHAPES[currentAnimalIndex]);
 }
 window.addEventListener('resize', fit);
 fit();
@@ -74,6 +74,13 @@ const CONSTELLATIONS = buildConstellations(STARS);
 // Animal constellations (vector line art normalized to 0..1)
 const ANIMAL_SHAPES = createAnimalShapes();
 let ANIMALS = placeAnimals(ANIMAL_SHAPES);
+// Estados para mostrar 1 animal y 1 constelación a la vez
+let currentAnimalIndex = 0;
+let currentAnimal = buildAnimalInstance(ANIMAL_SHAPES[currentAnimalIndex]);
+const CYCLE = { animalDuration: 7000, constellationDuration: 6000 };
+let nextAnimalAt = performance.now() + CYCLE.animalDuration;
+let currentConstellationIndex = 0;
+let nextConstAt = performance.now() + CYCLE.constellationDuration;
 
 // Extra animations: shooting stars, particles and aurora
 const METEORS = [];
@@ -170,38 +177,49 @@ function draw(){
     ctx.fill();
   }
 
-  // Draw constellation lines & labels
+  // Draw ONE constellation at a time (ciclo)
   if (toggleLines.checked){
-    ctx.strokeStyle = 'rgba(255, 215, 130, 0.85)';
-    ctx.lineWidth = 1.5;
-    ctx.shadowColor = '#f2a900';
-    ctx.shadowBlur = 8;
-    for (const g of CONSTELLATIONS){
-      ctx.beginPath();
-      for (let i=0;i<g.stars.length;i++){
-        const s = g.stars[i];
-        const x = (s.x + panX*0.35) * W;
-        const y = (s.y + panY*0.35) * H;
-        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      }
-      ctx.stroke();
-
-      // Label near middle
-      const mid = g.stars[Math.floor(g.stars.length/2)];
-      const lx = (mid.x + panX*0.35) * W;
-      const ly = (mid.y + panY*0.35) * H - 8;
-      ctx.save();
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.font = '600 12px Montserrat, sans-serif';
-      ctx.fillText(g.name, lx+6, ly);
-      ctx.restore();
+    const nowS = now;
+    if (nowS > nextConstAt){
+      currentConstellationIndex = (currentConstellationIndex + 1) % CONSTELLATIONS.length;
+      nextConstAt = nowS + CYCLE.constellationDuration;
     }
+    const g = CONSTELLATIONS[currentConstellationIndex];
+    const prog = 0.2 + 0.8*((CYCLE.constellationDuration - (nextConstAt - nowS))/CYCLE.constellationDuration);
+    const segs = Math.max(2, Math.floor(prog * g.stars.length));
+
+    ctx.strokeStyle = 'rgba(255, 215, 130, 0.85)';
+    ctx.lineWidth = 1.7;
+    ctx.shadowColor = '#f2a900';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    for (let i=0;i<segs;i++){
+      const s = g.stars[i];
+      const x = (s.x + panX*0.35) * W;
+      const y = (s.y + panY*0.35) * H;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    const mid = g.stars[Math.min(g.stars.length-1, Math.floor(segs/2))];
+    const lx = (mid.x + panX*0.35) * W;
+    const ly = (mid.y + panY*0.35) * H - 8;
+    ctx.save();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.font = '600 12px Montserrat, sans-serif';
+    ctx.fillText(g.name, lx+6, ly);
+    ctx.restore();
   }
 
-  // Draw animated animal constellations
+  // Draw ONE animal at a time
   if (toggleAnimals && toggleAnimals.checked){
-    renderAnimals(ctx, W, H, panX, panY, now);
+    if (now > nextAnimalAt){
+      currentAnimalIndex = (currentAnimalIndex + 1) % ANIMAL_SHAPES.length;
+      currentAnimal = buildAnimalInstance(ANIMAL_SHAPES[currentAnimalIndex]);
+      nextAnimalAt = now + CYCLE.animalDuration;
+    }
+    renderAnimals(ctx, W, H, panX, panY, now, [currentAnimal]);
   }
 
   // Shooting stars and particle overlays
@@ -274,6 +292,18 @@ function createAnimalShapes(){
   return [hummingbird, fox, dolphin];
 }
 
+function buildAnimalInstance(shape){
+  // Construye un animal en el centro con ligeras variaciones
+  return {
+    shape,
+    x: 0.5 + (rng()*0.02 - 0.01),
+    y: 0.52 + (rng()*0.02 - 0.01),
+    scale: 1.15 + rng()*0.35,
+    rot: (rng()*2-1) * 0.15,
+    phase: rng()*Math.PI*2,
+  };
+}
+
 function placeAnimals(shapes){
   // Coloca figuras cerca del centro sin traslaparse
   const arr = [];
@@ -311,12 +341,13 @@ function placeAnimals(shapes){
   return arr;
 }
 
-function renderAnimals(ctx, W, H, panX, panY, now){
+function renderAnimals(ctx, W, H, panX, panY, now, animals){
   const t = now * 0.0015; // speed
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  for (const a of ANIMALS){
+  const list = animals || ANIMALS;
+  for (const a of list){
     const px = (a.x + panX*0.10) * W;
     const py = (a.y + panY*0.10) * H;
     const sc = (Math.sin(t*0.6 + a.phase)*0.02 + 1) * a.scale * Math.min(W,H) * 0.42;
