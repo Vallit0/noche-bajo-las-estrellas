@@ -273,21 +273,21 @@ function createAnimalShapes(){
 }
 
 function placeAnimals(shapes){
-  // Place a few instances across the sky with random rotation/scale
+  // Place instances near the central region for mobile visibility
   const arr = [];
   const areas = [
-    {x:0.25,y:0.30},{x:0.70,y:0.28},{x:0.50,y:0.18},
-    {x:0.20,y:0.62},{x:0.78,y:0.60}
+    {x:0.50,y:0.44},{x:0.62,y:0.50},{x:0.38,y:0.50},
+    {x:0.50,y:0.58},{x:0.45,y:0.48}
   ];
   let i = 0;
   for (const pos of areas){
     const shape = shapes[i % shapes.length]; i++;
     arr.push({
       shape,
-      x: pos.x + (rng()*0.05 - 0.025),
-      y: pos.y + (rng()*0.05 - 0.025),
-      scale: 0.8 + rng()*0.6,
-      rot: (rng()*2-1) * 0.25,
+      x: pos.x + (rng()*0.03 - 0.015),
+      y: pos.y + (rng()*0.03 - 0.015),
+      scale: 0.95 + rng()*0.55,
+      rot: (rng()*2-1) * 0.18,
       phase: rng()*Math.PI*2,
     });
   }
@@ -300,9 +300,9 @@ function renderAnimals(ctx, W, H, panX, panY, now){
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   for (const a of ANIMALS){
-    const px = (a.x + panX*0.25) * W;
-    const py = (a.y + panY*0.25) * H;
-    const sc = (Math.sin(t*0.6 + a.phase)*0.02 + 1) * a.scale * Math.min(W,H) * 0.35;
+    const px = (a.x + panX*0.10) * W;
+    const py = (a.y + panY*0.10) * H;
+    const sc = (Math.sin(t*0.6 + a.phase)*0.02 + 1) * a.scale * Math.min(W,H) * 0.42;
     const rot = a.rot + Math.sin(t*0.3 + a.phase)*0.02;
     const progress = (Math.sin(t + a.phase) + 1) * 0.5; // 0..1
 
@@ -395,12 +395,12 @@ function traceStrokes(ctx, strokes, drawLen){
 
 // ---- Shooting stars ----
 function spawnMeteor(W, H, panX, panY){
-  const fromTop = Math.random() < 0.6;
-  const x = fromTop ? Math.random()*W : -50;
-  const y = fromTop ? -20 : Math.random()*H*0.4;
-  const speed = 400 + Math.random()*500;
-  const angle = (-35 + Math.random()*20) * Math.PI/180;
-  METEORS.push({ x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, life: 0.9+Math.random()*0.8, age:0, len: 120+Math.random()*120 });
+  // Spawn from the top-center region so they cross the middle of the screen
+  const x = W*(0.30 + Math.random()*0.40); // 30%..70%
+  const y = -20;
+  const speed = 500 + Math.random()*450;
+  const angle = (-45 + Math.random()*10) * Math.PI/180; // down-right
+  METEORS.push({ x, y, vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed, life: 1.0+Math.random()*0.9, age:0, len: 160+Math.random()*120 });
 }
 
 let lastMeteor = 0;
@@ -452,7 +452,8 @@ function updateParticles(ctx, W, H, now){
 
 // ---- Aurora ----
 function renderAurora(ctx, W, H, now, panX, panY){
-  const yBase = H*0.18 + Math.sin(now*0.0003)*10 + panY*20;
+  // Slightly lower so it is visible on tall phones, but still upper third
+  const yBase = H*0.24 + Math.sin(now*0.0003)*10 + panY*14;
   const bands = 3;
   for (let b=0;b<bands;b++){
     const alpha = 0.08 + b*0.05;
