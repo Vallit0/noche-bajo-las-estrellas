@@ -14,6 +14,8 @@ function fit() {
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // Reposicionar animales según tamaño para evitar traslapes
+  ANIMALS = placeAnimals(ANIMAL_SHAPES);
 }
 window.addEventListener('resize', fit);
 fit();
@@ -71,7 +73,7 @@ const CONSTELLATIONS = buildConstellations(STARS);
 
 // Animal constellations (vector line art normalized to 0..1)
 const ANIMAL_SHAPES = createAnimalShapes();
-const ANIMALS = placeAnimals(ANIMAL_SHAPES);
+let ANIMALS = placeAnimals(ANIMAL_SHAPES);
 
 // Extra animations: shooting stars, particles and aurora
 const METEORS = [];
@@ -273,23 +275,38 @@ function createAnimalShapes(){
 }
 
 function placeAnimals(shapes){
-  // Place instances near the central region for mobile visibility
+  // Coloca figuras cerca del centro sin traslaparse
   const arr = [];
-  const areas = [
-    {x:0.50,y:0.44},{x:0.62,y:0.50},{x:0.38,y:0.50},
-    {x:0.50,y:0.58},{x:0.45,y:0.48}
-  ];
-  let i = 0;
-  for (const pos of areas){
-    const shape = shapes[i % shapes.length]; i++;
+  const vw = Math.max(320, window.innerWidth || 800);
+  const vh = Math.max(320, window.innerHeight || 600);
+  const n = Math.min(shapes.length, (Math.min(vw, vh) < 520 ? 3 : 4));
+  const cx = 0.5, cy = 0.5;
+  const baseR = 0.14;
+  const minD = 0.18; // distancia mínima entre centros en espacio 0..1
+  let attempts = 0;
+  while (arr.length < n && attempts < 400){
+    attempts++;
+    const idx = arr.length % shapes.length;
+    const angle = (arr.length/n)*Math.PI*2 + (rng()*0.6 - 0.3);
+    const r = baseR * (0.85 + rng()*0.4);
+    const x = cx + Math.cos(angle)*r;
+    const y = cy + Math.sin(angle)*r*0.8;
+    if (x < 0.30 || x > 0.70 || y < 0.35 || y > 0.70) continue; // mantén en zona central
+    const ok = arr.every(a => {
+      const dx = a.x - x, dy = a.y - y;
+      return (dx*dx + dy*dy) > (minD*minD);
+    });
+    if (!ok) continue;
     arr.push({
-      shape,
-      x: pos.x + (rng()*0.03 - 0.015),
-      y: pos.y + (rng()*0.03 - 0.015),
-      scale: 0.95 + rng()*0.55,
+      shape: shapes[idx],
+      x, y,
+      scale: 1.05 + rng()*0.45,
       rot: (rng()*2-1) * 0.18,
       phase: rng()*Math.PI*2,
     });
+  }
+  if (arr.length === 0){
+    arr.push({ shape: shapes[0], x: cx, y: cy, scale: 1.2, rot: 0, phase: rng()*Math.PI*2 });
   }
   return arr;
 }
