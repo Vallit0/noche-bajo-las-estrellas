@@ -5,6 +5,9 @@ const btnCamera = document.getElementById('btnCamera');
 const btnGyro = document.getElementById('btnGyro');
 const toggleLines = document.getElementById('toggleLines');
 const toggleAnimals = document.getElementById('toggleAnimals');
+const promptEl = document.getElementById('prompt');
+const promptBtn = document.getElementById('promptBtn');
+const promptMsg = document.getElementById('promptMsg');
 
 // Resize canvas to full screen
 function fit() {
@@ -21,6 +24,8 @@ window.addEventListener('resize', fit);
 fit();
 
 // Start camera
+let cameraReady = false;
+let lastCamError = '';
 async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -29,13 +34,32 @@ async function startCamera() {
     });
     video.srcObject = stream;
     await video.play().catch(()=>{});
+    cameraReady = true;
+    hidePrompt();
   } catch (err) {
     console.error('No se pudo abrir la cámara', err);
+    lastCamError = err && err.message || String(err);
     btnCamera.textContent = 'Cámara bloqueada';
+    showPrompt(lastCamError);
   }
 }
 
 btnCamera.addEventListener('click', startCamera);
+if (promptBtn) promptBtn.addEventListener('click', startCamera);
+
+function showPrompt(msg){
+  if (!promptEl) return;
+  if (!window.isSecureContext){
+    promptMsg.textContent = 'Se requiere HTTPS para usar la cámara. Abre la versión segura del sitio.';
+  } else if (msg) {
+    const friendly = msg.includes('Permission')||msg.includes('denied') ? 'Permiso denegado. Toca "Permitir cámara".' : msg;
+    promptMsg.textContent = friendly;
+  } else {
+    promptMsg.textContent = 'Para vivir la experiencia, permite el acceso a la cámara.';
+  }
+  promptEl.classList.remove('hidden');
+}
+function hidePrompt(){ if (promptEl) promptEl.classList.add('hidden'); }
 
 // Orientation / gyro support
 let yaw = 0, pitch = 0, roll = 0;
@@ -231,8 +255,12 @@ function draw(){
 requestAnimationFrame(draw);
 
 // Auto-start camera if possible
+// En iOS Safari, getUserMedia requiere gesto de usuario. Mostramos prompt si no está lista.
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+  // intenta arrancar; si falla por falta de gesto, se mostrará el prompt con botón
   startCamera();
+} else {
+  showPrompt('Este navegador no soporta cámara.');
 }
 
 // Helpful tips in console
