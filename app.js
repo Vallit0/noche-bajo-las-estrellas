@@ -3,6 +3,7 @@ const canvas = document.getElementById('stars');
 const ctx = canvas.getContext('2d');
 const btnCamera = document.getElementById('btnCamera');
 const btnGyro = document.getElementById('btnGyro');
+const btnCapture = document.getElementById('btnCapture');
 const toggleLines = document.getElementById('toggleLines');
 const toggleAnimals = document.getElementById('toggleAnimals');
 const promptEl = document.getElementById('prompt');
@@ -47,6 +48,7 @@ async function startCamera() {
 
 btnCamera.addEventListener('click', startCamera);
 if (promptBtn) promptBtn.addEventListener('click', startCamera);
+if (btnCapture) btnCapture.addEventListener('click', capturePhoto);
 
 function showPrompt(msg){
   if (!promptEl) return;
@@ -276,6 +278,49 @@ console.log('%cTip','background:#f2a900;color:#1a0b00;padding:2px 6px;border-rad
 
 // Intro fade out
 window.addEventListener('load', ()=>{ setTimeout(()=>{ if (intro) intro.classList.add('fade'); }, 1200); });
+
+// ---- Capture photo (composite video + overlays) ----
+async function capturePhoto(){
+  try{
+    const w = canvas.width;   // device pixels
+    const h = canvas.height;
+    if (!w || !h){ return; }
+    const off = document.createElement('canvas');
+    off.width = w; off.height = h;
+    const octx = off.getContext('2d');
+    // Draw camera frame
+    if (video && video.videoWidth){
+      octx.drawImage(video, 0, 0, w, h);
+    }
+    // Draw star/constellation canvas
+    octx.drawImage(canvas, 0, 0);
+    // Soft vignette like on screen
+    const rg = octx.createRadialGradient(w/2, h/2, Math.min(w,h)*0.45, w/2, h/2, Math.min(w,h)*0.55);
+    rg.addColorStop(0, 'rgba(0,0,0,0)');
+    rg.addColorStop(1, 'rgba(0,0,0,0.35)');
+    octx.fillStyle = rg; octx.fillRect(0,0,w,h);
+    // Timestamp watermark
+    const ts = new Date();
+    const pad = n=> String(n).padStart(2,'0');
+    const label = `${ts.getFullYear()}-${pad(ts.getMonth()+1)}-${pad(ts.getDate())} ${pad(ts.getHours())}:${pad(ts.getMinutes())}`;
+    octx.font = `${Math.round(Math.max(w,h)*0.02)}px Montserrat, sans-serif`;
+    octx.fillStyle = 'rgba(255,255,255,0.9)';
+    octx.textBaseline = 'bottom';
+    octx.fillText(label, 20, h-20);
+
+    off.toBlob((blob)=>{
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ts2 = `${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}-${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}`;
+      a.href = url; a.download = `noche-estrellas-${ts2}.png`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=> URL.revokeObjectURL(url), 2000);
+    }, 'image/png');
+  }catch(e){
+    console.warn('No se pudo capturar la foto', e);
+  }
+}
 
 // ---- Animal constellation helpers ----
 function createAnimalShapes(){
