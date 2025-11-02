@@ -269,7 +269,7 @@ function createAnimalShapes(){
   // Points are arrays of [x,y] in unit space. Multiple strokes per shape.
   // Hummingbird (Colibrí): body, beak, wings, tail (simple stylized)
   const hummingbird = {
-    name: 'Colibrí',
+    name: 'Colibri',
     strokes: [
       // body curve
       [[0.45,0.55],[0.50,0.50],[0.55,0.47],[0.60,0.48],[0.62,0.52],[0.60,0.56],[0.54,0.58],[0.49,0.57]],
@@ -305,7 +305,7 @@ function createAnimalShapes(){
 
   // Dolphin (Delfín)
   const dolphin = {
-    name: 'Delfín',
+    name: 'Delfin',
     strokes: [
       [[0.20,0.55],[0.30,0.48],[0.42,0.44],[0.55,0.43],[0.66,0.46],[0.76,0.50],[0.84,0.56]],
       [[0.42,0.44],[0.36,0.36],[0.32,0.34]],
@@ -315,7 +315,75 @@ function createAnimalShapes(){
     nodes: [[0.30,0.48],[0.55,0.43],[0.76,0.50]]
   };
 
-  return [hummingbird, fox, dolphin];
+  // Butterfly (Mariposa) – symmetric wings
+  const butterfly = {
+    name: 'Mariposa',
+    strokes: [
+      // body
+      [[0.50,0.35],[0.50,0.50],[0.50,0.65]],
+      // left wing top
+      [[0.50,0.45],[0.42,0.38],[0.34,0.36],[0.30,0.41],[0.34,0.47],[0.42,0.50]],
+      // left wing bottom
+      [[0.50,0.55],[0.42,0.58],[0.34,0.63],[0.32,0.70],[0.38,0.73],[0.45,0.66]],
+      // right wing top
+      [[0.50,0.45],[0.58,0.38],[0.66,0.36],[0.70,0.41],[0.66,0.47],[0.58,0.50]],
+      // right wing bottom
+      [[0.50,0.55],[0.58,0.58],[0.66,0.63],[0.68,0.70],[0.62,0.73],[0.55,0.66]],
+    ],
+    nodes: [[0.50,0.50],[0.42,0.38],[0.58,0.38],[0.34,0.63],[0.66,0.63]]
+  };
+
+  // Owl (Buho) – head and body outline with ears
+  const owl = {
+    name: 'Buho',
+    strokes: [
+      // head + ears
+      [[0.42,0.40],[0.46,0.34],[0.50,0.32],[0.54,0.34],[0.58,0.40]],
+      // body sides
+      [[0.42,0.40],[0.40,0.55],[0.44,0.70]],
+      [[0.58,0.40],[0.60,0.55],[0.56,0.70]],
+      // bottom arc
+      [[0.44,0.70],[0.50,0.74],[0.56,0.70]],
+    ],
+    nodes: [[0.46,0.34],[0.54,0.34],[0.50,0.74]]
+  };
+
+  // Turtle (Tortuga) – shell ellipse and limbs
+  const turtle = {
+    name: 'Tortuga',
+    strokes: [
+      // shell
+      [[0.40,0.55],[0.45,0.48],[0.55,0.48],[0.60,0.55],[0.55,0.62],[0.45,0.62],[0.40,0.55]],
+      // head
+      [[0.62,0.55],[0.68,0.54]],
+      // tail
+      [[0.38,0.55],[0.34,0.56]],
+      // legs
+      [[0.45,0.48],[0.43,0.44]],
+      [[0.55,0.48],[0.57,0.44]],
+      [[0.45,0.62],[0.43,0.66]],
+      [[0.55,0.62],[0.57,0.66]],
+    ],
+    nodes: [[0.50,0.48],[0.50,0.62],[0.62,0.55],[0.38,0.55]]
+  };
+
+  // Cat (Gato) – ears and curved back with tail
+  const cat = {
+    name: 'Gato',
+    strokes: [
+      // head with ears
+      [[0.44,0.52],[0.46,0.46],[0.50,0.44],[0.54,0.46],[0.56,0.52]],
+      // back arch
+      [[0.56,0.52],[0.62,0.56],[0.66,0.62],[0.64,0.68]],
+      // chest to paws
+      [[0.44,0.52],[0.42,0.60],[0.44,0.66]],
+      // tail
+      [[0.64,0.68],[0.68,0.64],[0.70,0.60],[0.68,0.56]],
+    ],
+    nodes: [[0.46,0.46],[0.54,0.46],[0.66,0.62]]
+  };
+
+  return [hummingbird, fox, dolphin, butterfly, owl, turtle, cat];
 }
 
 function buildAnimalInstance(shape){
